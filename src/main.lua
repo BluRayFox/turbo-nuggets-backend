@@ -13,7 +13,7 @@ local utils = require('utils')
 local task = require('task')
 ------
 
--- globals
+-- globals --
 _G.utils = utils
 _G.patcher = patcher
 _G.task = task
