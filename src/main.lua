@@ -1,10 +1,22 @@
+-- packages and libs require aliases
+-- elite ball knowledge
+package.path = './libs/?.lua;'
+    .. './libs/?/init.lua;'
+    .. package.path
+
 local http = require('http')
 local config = require('./config')
-local patcher = require('./libs/patcher')
+local patcher = require('patcher')
+local utils = require('utils')
+
+-- globals
+_G.utils = utils
+_G.patcher = patcher
 
 http.createServer(function(req, res)
     -- patch res 
     patcher.patchRes(res, {redirect = true})
+    local urlTable = utils.urlToTable(req.url)
 
     local www = ''
 
@@ -23,6 +35,12 @@ http.createServer(function(req, res)
     local success, handler = pcall(function()
         return require('./www/'..www..'/handler')
     end)
+    
+    if not success then
+        success, handler = pcall(function()
+            return require('./www/'..urlTable[1]..'/handler')
+        end)
+    end
 
     if not success then
         res:redirect('/not-found', nil, true)
