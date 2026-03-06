@@ -2,6 +2,14 @@ local http = require('http')
 local config = require('./config')
 
 http.createServer(function(req, res)
+    -- patch res 
+    function res.redirect(self, path, status, finish)
+        self:writeHead(status or 308, {
+            ["Location"] = path
+        })
+        if finish then self:finish() end
+    end
+
     local www = ''
 
     if req.url == '/' then 
@@ -12,9 +20,12 @@ http.createServer(function(req, res)
 
     print(www)
     
-    local handler = require('./www/'..www..'/handler')
-    if not handler then
-        res:finish('404: No such page.')
+    local success, handler = pcall(function()
+        return require('./www/'..www..'/handler')
+    end)
+
+    if not success then
+        res:redirect('/not-found', nil, true)
         return
     end
 
